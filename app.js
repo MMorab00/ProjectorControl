@@ -4,6 +4,7 @@ const SUPABASE_URL='https://ginbznhpjwskfsxocmpx.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_M8X8AoswTDFSLTf-iKdLUg_GBDA6B9O';
 const configured=!SUPABASE_URL.startsWith('INSERISCI_QUI')&&!SUPABASE_ANON_KEY.startsWith('INSERISCI_QUI');
 const sb=configured?createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
+window.testSb = sb;
 const app=document.querySelector('#app'),userArea=document.querySelector('#userArea');
 let user=null,profile=null,projector=null,rows=[];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
