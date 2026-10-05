@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const SUPABASE_URL='https://ginbznhpjwskfsxocmpx.supabase.co/rest/v1/';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpbmJ6bmhwandza2ZzeG9jbXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyMTA2OTksImV4cCI6MjEwNjc4NjY5OX0.a75oeHbp-WR-m-zGJZWbuOjPoEGJWfed08mHolQo-5I';
+const SUPABASE_ANON_KEY='sb_publishable_M8X8AoswTDFSLTf-iKdLUg_GBDA6B9O';
 const configured=!SUPABASE_URL.startsWith('INSERISCI_QUI')&&!SUPABASE_ANON_KEY.startsWith('INSERISCI_QUI');
 const sb=configured?createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true}}):null;
 const app=document.querySelector('#app'),userArea=document.querySelector('#userArea');
