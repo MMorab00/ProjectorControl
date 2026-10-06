@@ -75,12 +75,12 @@ function renderDashboard(){
         : 'TUTTO OK';
 
   let sub=open
-    ? `${name(open.user)} ha lasciato acceso il proiettore il ${fmt(open.powered_at)}.`
-    : overdue
-      ? 'Accendere il proiettore prima possibile.'
-      : last
-        ? `Prossima accensione entro il ${nextDate.toLocaleDateString('it-IT')}.`
-        : 'Nessuna accensione registrata.';
+  ? `${name(open.user)} ha lasciato acceso il proiettore il ${fmt(open.powered_at)}.`
+  : overdue
+    ? 'Accendere il proiettore prima possibile.'
+    : last
+      ? 'Il proiettore è in regola.'
+      : 'Nessuna accensione registrata.';
 
   let centralNumber=last&&nextDate
     ? overdue
@@ -113,17 +113,26 @@ function renderDashboard(){
 
     <div class="grid">
       <section class="card center">
-        <small>${esc(projector?.name||'Proiettore Cinema')}</small>
+  <small>${esc(projector?.name||'Proiettore Cinema')}</small>
 
-        <div class="number">${centralNumber}</div>
+  <div class="muted" style="font-size:1rem;font-weight:700;margin-top:12px;">
+    PROSSIMA ACCENSIONE
+  </div>
 
-        <div class="muted">
-          ${last
-            ? overdue
-              ? 'accendere prima possibile'
-              : 'prossima accensione'
-            : 'nessuna accensione registrata'}
-        </div>
+  <div class="number">${centralNumber}</div>
+
+  <div class="muted">
+    ${last
+      ? overdue
+        ? '⚠ ACCENDERE PRIMA POSSIBILE'
+        : 'Data prevista'
+      : 'nessuna accensione registrata'}
+  </div>
+
+  <button class="primary full" id="register">
+    ⚡ REGISTRA ACCENSIONE
+  </button>
+</section>
 
         <button class="primary full" id="register">
           ⚡ REGISTRA ACCENSIONE
