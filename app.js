@@ -509,37 +509,34 @@ function renderDashboard(){
 
 
           ${
-            open.state==='IN_CARICO' &&
-            open.claimed_by===user.id
-
-              ?`
-                <button
-                  class="danger"
-                  id="shutdown"
-                >
-                  ✓ PROIETTORE SPENTO
-                </button>
-              `
-
-              :''
-          }
+           ${
+  open.state==='IN_CARICO' &&
+  open.claimed_by===user.id
+    ?`
+      <button
+        class="danger"
+        id="shutdown"
+      >
+        ✓ HO SPENTO
+      </button>
+    `
+    :''
+}
 
 
           ${
-            profile?.role==='admin' &&
-            open.state!=='ACCESO'
-
-              ?`
-                <button
-                  class="danger"
-                  id="shutdown"
-                >
-                  ✓ PROIETTORE SPENTO
-                </button>
-              `
-
-              :''
-          }
+  profile?.role==='admin' &&
+  open.state==='LASCIATO_ACCESO'
+    ?`
+      <button
+        class="danger"
+        id="shutdown"
+      >
+        ✓ PROIETTORE SPENTO
+      </button>
+    `
+    :''
+}
 
         </div>
 
