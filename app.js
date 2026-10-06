@@ -10,20 +10,24 @@ let user=null,profile=null,projector=null,rows=[];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 const fmt=s=>s?new Date(s).toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'}):'—';
 const name=p=>p?(p.first_name||'Utente')+(p.last_name?' '+p.last_name:''):'—';
-function daysLeft(){
-  if(!rows[0] || !projector) return null;
+function status(){
+  if(rows[0]&&(rows[0].state==='LASCIATO_ACCESO'||rows[0].state==='IN_CARICO')){
+    return 'alert';
+  }
 
-  const target = new Date(rows[0].powered_at);
-  target.setDate(target.getDate() + projector.interval_days);
+  if(!rows[0]||!projector){
+    return 'overdue';
+  }
+
+  const next = new Date(rows[0].powered_at);
+  next.setDate(next.getDate() + projector.interval_days);
 
   const today = new Date();
   today.setHours(0,0,0,0);
+  next.setHours(0,0,0,0);
 
-  target.setHours(0,0,0,0);
-
-  return Math.round((target - today) / 86400000);
+  return today >= next ? 'overdue' : 'ok';
 }
-function status(){if(rows[0]&&(rows[0].state==='LASCIATO_ACCESO'||rows[0].state==='IN_CARICO'))return 'alert';let d=daysLeft();return d===null?'overdue':d<0?'overdue':d<=1?'warning':'ok'}
 function toast(t){let x=document.createElement('div');x.className='toast';x.textContent=t;document.body.append(x);setTimeout(()=>x.remove(),3500)}
 function modal(title,body){let o=document.createElement('div');o.className='overlay';o.innerHTML=`<div class="modal"><div class="mhead"><h2>${title}</h2><button class="x">×</button></div>${body}</div>`;o.querySelector('.x').onclick=()=>o.remove();document.body.append(o);return o}
 async function load(){
@@ -41,7 +45,136 @@ async function load(){
 }
 function render(){if(!configured){userArea.innerHTML='<span class="pill warn">DEMO / DA CONFIGURARE</span>';renderSetup();return}if(!user){userArea.innerHTML='<button class="login" id="login">Accedi</button>';app.innerHTML=`<section class="welcome"><img src="icons/icon-192.png"><h1>Projector Keep Alive</h1><p>Gestione condivisa delle accensioni del proiettore.</p><button class="primary" id="login2">ACCEDI</button><button class="secondary" id="signup">CREA ACCOUNT</button></section>`;document.querySelector('#login').onclick=loginModal;document.querySelector('#login2').onclick=loginModal;document.querySelector('#signup').onclick=signupModal;return}userArea.innerHTML=`<span class="pill">${esc(name(profile))}</span><button class="login" id="logout">Esci</button>`;document.querySelector('#logout').onclick=async()=>{await sb.auth.signOut();location.reload()};renderDashboard()}
 function renderSetup(){app.innerHTML=`<section class="welcome"><img src="icons/icon-192.png"><h1>Cinema Projector Keep Alive</h1><p>L'app è pronta. Devi solo collegarla a Supabase.</p><div class="setup">Apri <b>README.md</b>: inserisci URL e anon key in <b>app.js</b>, esegui <b>supabase/schema.sql</b>, poi pubblica su GitHub Pages.</div></section>`}
-function renderDashboard(){let s=status(),d=daysLeft(),last=rows[0],open=rows.find(x=>x.state==='LASCIATO_ACCESO'||x.state==='IN_CARICO');let title=open?'QUALCUNO DEVE SPEGNERE':d===null?'PRIMA ACCENSIONE':s==='overdue'?'ACCENSIONE SCADUTA':s==='warning'?'ACCENSIONE IN SCADENZA':'TUTTO OK';let sub=open?`${name(open.user)} ha lasciato acceso il proiettore il ${fmt(open.powered_at)}.`:last?`Prossima accensione entro ${new Date(new Date(last.powered_at).getTime()+projector.interval_days*86400000).toLocaleDateString('it-IT')}.`:'Nessuna accensione registrata.';app.innerHTML=`<section class="status ${s}"><div class="statusIcon">${s==='ok'?'✓':s==='warning'?'!':'⚠'}</div><div><small>STATO PROIETTORE</small><h1>${title}</h1><p>${esc(sub)}</p></div></section>${open?`<section class="alert"><div><b>🔴 Proiettore acceso</b><p>Registrato da <b>${esc(name(open.user))}</b> · ${fmt(open.powered_at)}</p>${open.claimed_by?`<small>In carico a ${esc(name(open.claimed_user))}</small>`:''}</div><div>${!open.claimed_by?'<button class="secondary" id="claim">🙋 VADO IO</button>':''}${(open.claimed_by===user.id||profile?.role==='admin')?'<button class="danger" id="shutdown">✓ PROIETTORE SPENTO</button>':''}</div></section>`:''}<div class="grid"><section class="card center"><small>${esc(projector?.name||'Proiettore Cinema')}</small><div class="number">${d===null?'—':Math.abs(d)}</div><div class="muted">${d===null?'giorni':d<0?'giorni di ritardo':'giorni alla prossima accensione'}</div><button class="primary full" id="register">⚡ REGISTRA ACCENSIONE</button></section><section class="card stats"><div><small>Ultima accensione</small><b>${fmt(last?.powered_at)}</b></div><div><small>Eseguita da</small><b>${esc(name(last?.user))}</b></div><div><small>Intervallo</small><b>${projector?.interval_days||7} giorni</b></div><div><small>Operazioni</small><b>${rows.length}</b></div></section></div><div class="actions"><button class="quick" id="history">📋 <b>Storico</b><span>Ultime operazioni</span></button>${profile?.role==='admin'?'<button class="quick" id="settings">⚙️ <b>Impostazioni</b><span>Intervallo e proiettore</span></button>':''}<button class="quick" id="install">📱 <b>Installa</b><span>Aggiungi alla Home</span></button></div>`;document.querySelector('#register').onclick=registerModal;document.querySelector('#history').onclick=historyModal;document.querySelector('#install').onclick=installModal;document.querySelector('#claim')?.addEventListener('click',claim);document.querySelector('#shutdown')?.addEventListener('click',shutdown);document.querySelector('#settings')?.addEventListener('click',settingsModal)}
+function renderDashboard(){
+  let s=status();
+  let last=rows[0];
+  let open=rows.find(x=>x.state==='LASCIATO_ACCESO'||x.state==='IN_CARICO');
+
+  let nextDate=null;
+
+  if(last&&projector){
+    nextDate=new Date(last.powered_at);
+    nextDate.setDate(nextDate.getDate()+projector.interval_days);
+  }
+
+  const today=new Date();
+  today.setHours(0,0,0,0);
+
+  let overdue=nextDate&&today>=new Date(
+    nextDate.getFullYear(),
+    nextDate.getMonth(),
+    nextDate.getDate()
+  );
+
+  let title=open
+    ? 'QUALCUNO DEVE SPEGNERE'
+    : !last
+      ? 'PRIMA ACCENSIONE'
+      : overdue
+        ? 'ACCENSIONE DA ESEGUIRE'
+        : 'TUTTO OK';
+
+  let sub=open
+    ? `${name(open.user)} ha lasciato acceso il proiettore il ${fmt(open.powered_at)}.`
+    : overdue
+      ? 'Accendere il proiettore prima possibile.'
+      : last
+        ? `Prossima accensione entro il ${nextDate.toLocaleDateString('it-IT')}.`
+        : 'Nessuna accensione registrata.';
+
+  let centralNumber=last&&nextDate
+    ? overdue
+      ? 'ORA'
+      : nextDate.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'})
+    : '—';
+
+  app.innerHTML=`
+    <section class="status ${s}">
+      <div class="statusIcon">${s==='ok'?'✓':s==='alert'?'⚠':'!'}</div>
+      <div>
+        <small>STATO PROIETTORE</small>
+        <h1>${title}</h1>
+        <p>${esc(sub)}</p>
+      </div>
+    </section>
+
+    ${open?`
+    <section class="alert">
+      <div>
+        <b>🔴 Proiettore acceso</b>
+        <p>Registrato da <b>${esc(name(open.user))}</b> · ${fmt(open.powered_at)}</p>
+        ${open.claimed_by?`<small>In carico a ${esc(name(open.claimed_user))}</small>`:''}
+      </div>
+      <div>
+        ${!open.claimed_by?'<button class="secondary" id="claim">🙋 VADO IO</button>':''}
+        ${(open.claimed_by===user.id||profile?.role==='admin')?'<button class="danger" id="shutdown">✓ PROIETTORE SPENTO</button>':''}
+      </div>
+    </section>`:''}
+
+    <div class="grid">
+      <section class="card center">
+        <small>${esc(projector?.name||'Proiettore Cinema')}</small>
+
+        <div class="number">${centralNumber}</div>
+
+        <div class="muted">
+          ${last
+            ? overdue
+              ? 'accendere prima possibile'
+              : 'prossima accensione'
+            : 'nessuna accensione registrata'}
+        </div>
+
+        <button class="primary full" id="register">
+          ⚡ REGISTRA ACCENSIONE
+        </button>
+      </section>
+
+      <section class="card stats">
+        <div>
+          <small>Ultima accensione</small>
+          <b>${fmt(last?.powered_at)}</b>
+        </div>
+
+        <div>
+          <small>Eseguita da</small>
+          <b>${esc(name(last?.user))}</b>
+        </div>
+
+        <div>
+          <small>Intervallo</small>
+          <b>${projector?.interval_days||14} giorni</b>
+        </div>
+
+        <div>
+          <small>Operazioni</small>
+          <b>${rows.length}</b>
+        </div>
+      </section>
+    </div>
+
+    <div class="actions">
+      <button class="quick" id="history">
+        📋 <b>Storico</b><span>Ultime operazioni</span>
+      </button>
+
+      ${profile?.role==='admin'
+        ?'<button class="quick" id="settings">⚙️ <b>Impostazioni</b><span>Intervallo e proiettore</span></button>'
+        :''}
+
+      <button class="quick" id="install">
+        📱 <b>Installa</b><span>Aggiungi alla Home</span>
+      </button>
+    </div>
+  `;
+
+  document.querySelector('#register').onclick=registerModal;
+  document.querySelector('#history').onclick=historyModal;
+  document.querySelector('#install').onclick=installModal;
+  document.querySelector('#claim')?.addEventListener('click',claim);
+  document.querySelector('#shutdown')?.addEventListener('click',shutdown);
+  document.querySelector('#settings')?.addEventListener('click',settingsModal);
+}
 function loginModal(){let m=modal('Accedi',`<label>Email<input id="e" type="email"></label><label>Password<input id="p" type="password"></label><button class="primary full" id="go">ACCEDI</button>`);m.querySelector('#go').onclick=async()=>{let {error}=await sb.auth.signInWithPassword({email:m.querySelector('#e').value,password:m.querySelector('#p').value});if(error)toast(error.message);else m.remove()}}
 function signupModal(){let m=modal('Crea account',`<label>Nome<input id="n"></label><label>Cognome<input id="c"></label><label>Email<input id="e" type="email"></label><label>Password<input id="p" type="password"></label><button class="primary full" id="go">CREA ACCOUNT</button>`);m.querySelector('#go').onclick=async()=>{let {data,error}=await sb.auth.signUp({email:m.querySelector('#e').value,password:m.querySelector('#p').value,options:{data:{first_name:m.querySelector('#n').value,last_name:m.querySelector('#c').value}}});if(error){console.error('signup error',error);toast((error.code?error.code+': ':'')+error.message)}else{toast(data.session?'Account creato':'Controlla la mail per confermare l’account');m.remove()}}}
 function registerModal(){let m=modal('Registra accensione',`<p class="note">Data e ora automatiche · ${new Date().toLocaleString('it-IT')}</p><label><input type="checkbox" checked disabled> Proiettore acceso</label><label><input id="server" type="checkbox" checked> Server cinema acceso</label><label><input id="lamp" type="checkbox"> Lampada accesa</label><label>Note<textarea id="notes" placeholder="Eventuali note…"></textarea></label><label class="leave"><input id="leave" type="checkbox"> 🟠 <b>Non spengo tutto</b><small>Avvisa gli altri.</small></label><button class="primary full" id="save">CONFERMA</button>`);m.querySelector('#save').onclick=async()=>{let leave=m.querySelector('#leave').checked;let {error}=await sb.from('maintenance_sessions').insert({projector_id:projector.id,user_id:user.id,projector_on:true,server_on:m.querySelector('#server').checked,lamp_on:m.querySelector('#lamp').checked,notes:m.querySelector('#notes').value||null,state:leave?'LASCIATO_ACCESO':'COMPLETATA'});if(error)toast(error.message);else{m.remove();await load();toast(leave?'⚠️ Avviso condiviso creato':'Accensione registrata')}}}
