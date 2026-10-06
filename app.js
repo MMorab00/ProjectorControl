@@ -882,14 +882,6 @@ function registerModal(){
       </label>
 
 
-      <label>
-        <input
-          id="lamp"
-          type="checkbox"
-        >
-        Lampada accesa
-      </label>
-
 
       <label>
         Note
