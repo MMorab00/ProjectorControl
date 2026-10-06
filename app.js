@@ -1039,57 +1039,6 @@ function registerModal(){
 }
 
 
-
-  m.querySelector('#save').onclick =
-    async () => {
-
-      const {
-        error
-      } = await sb
-        .from('maintenance_sessions')
-        .insert({
-          projector_id:
-            projector.id,
-
-          user_id:
-            user.id,
-
-          projector_on:
-            true,
-
-          server_on:
-            m.querySelector('#server').checked,
-
-          notes:
-            m.querySelector('#notes').value || null,
-
-          state:
-            'ACCESO'
-        });
-
-
-      if (error) {
-
-        console.error(
-          'registration error',
-          error
-        );
-
-        toast(error.message);
-
-      } else {
-
-        m.remove();
-
-        await load();
-
-        toast(
-          '⚡ Accensione registrata'
-        );
-      }
-    };
-
-
 /* =========================
    LASCIA ACCESO
 ========================= */
