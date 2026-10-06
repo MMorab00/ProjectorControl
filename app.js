@@ -508,7 +508,7 @@ function renderDashboard(){
           }
 
 
-          ${
+      
            ${
   open.state==='IN_CARICO' &&
   open.claimed_by===user.id
