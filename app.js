@@ -922,41 +922,122 @@ function signupModal() {
    REGISTRA ACCENSIONE
 ========================= */
 
-function registerModal() {
-  const m = modal(
+function registerModal(){
+
+  const m=modal(
     'Registra accensione',
     `
+
       <p class="note">
         Data e ora automatiche ·
         ${new Date().toLocaleString('it-IT')}
       </p>
 
+
       <label>
+
+        <input
+          id="projector"
+          type="checkbox"
+          checked
+        >
+
+        Proiettore acceso
+
+      </label>
+
+
+      <label>
+
         <input
           id="server"
           type="checkbox"
         >
-        Server cinema acceso
+
+        Server acceso
+
       </label>
 
+
       <label>
+
         Note
 
         <textarea
           id="notes"
           placeholder="Eventuali note…"
         ></textarea>
+
       </label>
+
 
       <button
         class="primary full"
         id="save"
-        type="button"
       >
         CONFERMA ACCENSIONE
       </button>
+
     `
   );
+
+
+  m.querySelector(
+    '#save'
+  ).onclick=async()=>{
+
+    const {
+      error
+    }=await sb
+      .from('maintenance_sessions')
+      .insert({
+
+        projector_id:
+          projector.id,
+
+        user_id:
+          user.id,
+
+        projector_on:
+          m.querySelector('#projector').checked,
+
+        server_on:
+          m.querySelector('#server').checked,
+
+        notes:
+          m.querySelector('#notes').value||null,
+
+        state:
+          'ACCESO'
+
+      });
+
+
+    if(error){
+
+      console.error(
+        'registration error',
+        error
+      );
+
+      toast(
+        error.message
+      );
+
+    }else{
+
+      m.remove();
+
+      await load();
+
+      toast(
+        '⚡ Accensione registrata'
+      );
+
+    }
+  };
+}
+
 
 
   m.querySelector('#save').onclick =
