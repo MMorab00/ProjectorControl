@@ -524,19 +524,7 @@ function renderDashboard(){
 }
 
 
-          ${
-  profile?.role==='admin' &&
-  open.state==='LASCIATO_ACCESO'
-    ?`
-      <button
-        class="danger"
-        id="shutdown"
-      >
-        ✓ PROIETTORE SPENTO
-      </button>
-    `
-    :''
-}
+          
 
         </div>
 
