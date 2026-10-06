@@ -195,17 +195,11 @@ function renderDashboard(){
           </button>`
         : ''}
 
-      <button class="quick" id="install">
-        📱 <b>Installa</b>
-        <span>Aggiungi alla Home</span>
-      </button>
-
     </div>
   `;
 
   document.querySelector('#register').onclick=registerModal;
   document.querySelector('#history').onclick=historyModal;
-  document.querySelector('#install').onclick=installModal;
   document.querySelector('#claim')?.addEventListener('click',claim);
   document.querySelector('#shutdown')?.addEventListener('click',shutdown);
   document.querySelector('#settings')?.addEventListener('click',settingsModal);
@@ -216,7 +210,6 @@ function registerModal(){let m=modal('Registra accensione',`<p class="note">Data
 async function claim(){let id=rows.find(x=>x.state==='LASCIATO_ACCESO')?.id;if(!id)return;let {error}=await sb.from('maintenance_sessions').update({claimed_by:user.id,claimed_at:new Date().toISOString(),state:'IN_CARICO'}).eq('id',id).eq('state','LASCIATO_ACCESO');if(error)toast(error.message);else{await load();toast('Hai preso in carico lo spegnimento')}}
 async function shutdown(){let r=rows.find(x=>x.state==='IN_CARICO'||x.state==='LASCIATO_ACCESO');if(!r)return;let {error}=await sb.from('maintenance_sessions').update({shutdown_at:new Date().toISOString(),shutdown_user_id:user.id,state:'SPENTO'}).eq('id',r.id);if(error)toast(error.message);else{await load();toast('Spegnimento registrato')}}
 function historyModal(){modal('Storico',`<div class="history">${rows.length?rows.map(r=>`<div class="row"><b>${fmt(r.powered_at)}</b><span>${esc(name(r.user))}</span><small>${r.state==='COMPLETATA'?'✓ Completata':r.state==='SPENTO'?'✓ Spento':r.state==='IN_CARICO'?'In carico':'⚠ Lasciato acceso'} · Proiettore ✓ · Server ${r.server_on?'✓':'—'} · Lampada ${r.lamp_on?'✓':'—'}</small></div>`).join(''):'Nessuna operazione.'}</div>`)}
-function installModal(){modal('Installa l’app',`<p><b>Android:</b> Chrome → ⋮ → Installa app / Aggiungi alla schermata Home.</p><p><b>iPhone:</b> Safari → Condividi → Aggiungi alla schermata Home.</p><p class="note">Tutti continueranno a usare lo stesso database condiviso.</p>`)}
 function settingsModal(){let m=modal('Impostazioni',`<label>Nome proiettore<input id="n" value="${esc(projector.name)}"></label><label>Intervallo (giorni)<input id="d" type="number" min="1" max="365" value="${projector.interval_days}"></label><button class="primary full" id="save">SALVA</button>`);m.querySelector('#save').onclick=async()=>{let {error}=await sb.from('projectors').update({name:m.querySelector('#n').value,interval_days:+m.querySelector('#d').value}).eq('id',projector.id);if(error)toast(error.message);else{m.remove();await load();toast('Impostazioni salvate')}}}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
 let realtimeChannel = null;
