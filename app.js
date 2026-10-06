@@ -915,7 +915,6 @@ function registerModal(){
         user_id:user.id,
         projector_on:true,
         server_on:m.querySelector('#server').checked,
-        lamp_on:m.querySelector('#lamp').checked,
         notes:m.querySelector('#notes').value||null,
         state:'ACCESO'
       });
@@ -1103,8 +1102,6 @@ function historyModal(){
                   · Server
                   ${r.server_on?'✓':'—'}
 
-                  · Lampada
-                  ${r.lamp_on?'✓':'—'}
 
                 </small>
 
