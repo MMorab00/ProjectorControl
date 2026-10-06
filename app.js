@@ -1,3 +1,4 @@
+```js
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const SUPABASE_URL='https://ginbznhpjwskfsxocmpx.supabase.co';
@@ -31,6 +32,7 @@ let profile=null;
 let projector=null;
 let rows=[];
 
+
 const esc=s=>String(s??'').replace(
   /[&<>"']/g,
   c=>({
@@ -41,6 +43,7 @@ const esc=s=>String(s??'').replace(
     "'":'&#039;'
   }[c])
 );
+
 
 const fmt=s=>
   s
@@ -53,9 +56,11 @@ const fmt=s=>
       )
     :'—';
 
+
 const name=p=>
   p
-    ?(p.first_name||'Utente')+(p.last_name?' '+p.last_name:'')
+    ?(p.first_name||'Utente')+
+      (p.last_name?' '+p.last_name:'')
     :'—';
 
 
@@ -93,7 +98,7 @@ function status(){
 
 function toast(t){
 
-  let x=document.createElement('div');
+  const x=document.createElement('div');
 
   x.className='toast';
   x.textContent=t;
@@ -109,17 +114,25 @@ function toast(t){
 
 function modal(title,body){
 
-  let o=document.createElement('div');
+  const o=document.createElement('div');
 
   o.className='overlay';
 
   o.innerHTML=`
     <div class="modal">
+
       <div class="mhead">
+
         <h2>${title}</h2>
-        <button class="x">×</button>
+
+        <button class="x">
+          ×
+        </button>
+
       </div>
+
       ${body}
+
     </div>
   `;
 
@@ -134,9 +147,12 @@ function modal(title,body){
 async function load(){
 
   if(!sb||!user){
+
     render();
+
     return;
   }
+
 
   const p=await sb
     .from('profiles')
@@ -144,7 +160,9 @@ async function load(){
     .eq('id',user.id)
     .maybeSingle();
 
+
   if(p.error){
+
     console.error(
       'profiles load error',
       p.error
@@ -158,7 +176,9 @@ async function load(){
     return;
   }
 
+
   profile=p.data;
+
 
   const q=await sb
     .from('projectors')
@@ -168,7 +188,9 @@ async function load(){
     .limit(1)
     .maybeSingle();
 
+
   if(q.error){
+
     console.error(
       'projectors load error',
       q.error
@@ -182,9 +204,12 @@ async function load(){
     return;
   }
 
+
   projector=q.data;
 
+
   if(!projector){
+
     toast(
       'Nessun proiettore configurato nel database.'
     );
@@ -194,16 +219,25 @@ async function load(){
     return;
   }
 
+
   const r=await sb
     .from('maintenance_sessions')
     .select(
       '*, user:profiles!maintenance_sessions_user_id_fkey(*), shutdown_user:profiles!maintenance_sessions_shutdown_user_id_fkey(*), claimed_user:profiles!maintenance_sessions_claimed_by_fkey(*)'
     )
-    .eq('projector_id',projector.id)
-    .order('powered_at',{ascending:false})
+    .eq(
+      'projector_id',
+      projector.id
+    )
+    .order(
+      'powered_at',
+      {ascending:false}
+    )
     .limit(100);
 
+
   if(r.error){
+
     console.error(
       'sessions load error',
       r.error
@@ -216,6 +250,7 @@ async function load(){
 
     return;
   }
+
 
   rows=r.data||[];
 
@@ -235,52 +270,90 @@ function render(){
     return;
   }
 
+
   if(!user){
 
     userArea.innerHTML=
       '<button class="login" id="login">Accedi</button>';
 
+
     app.innerHTML=`
+
       <section class="welcome">
+
         <img src="icons/icon-192.png">
 
-        <h1>Projector Control</h1>
+        <h1>
+          Projector Control
+        </h1>
 
         <p>
           Gestione condivisa delle accensioni del proiettore.
         </p>
 
-        <button class="primary" id="login2">
+        <button
+          class="primary"
+          id="login2"
+        >
           ACCEDI
         </button>
 
-        <button class="secondary" id="signup">
+        <button
+          class="secondary"
+          id="signup"
+        >
           CREA ACCOUNT
         </button>
+
       </section>
+
     `;
 
-    document.querySelector('#login').onclick=loginModal;
-    document.querySelector('#login2').onclick=loginModal;
-    document.querySelector('#signup').onclick=signupModal;
+
+    document.querySelector(
+      '#login'
+    ).onclick=loginModal;
+
+
+    document.querySelector(
+      '#login2'
+    ).onclick=loginModal;
+
+
+    document.querySelector(
+      '#signup'
+    ).onclick=signupModal;
 
     return;
   }
 
+
   userArea.innerHTML=`
+
     <span class="pill">
       ${esc(name(profile))}
     </span>
 
-    <button class="login" id="logout">
+    <button
+      class="login"
+      id="logout"
+    >
       Esci
     </button>
+
   `;
 
-  document.querySelector('#logout').onclick=async()=>{
+
+  document.querySelector(
+    '#logout'
+  ).onclick=async()=>{
+
     await sb.auth.signOut();
+
     location.reload();
+
   };
+
 
   renderDashboard();
 }
@@ -289,40 +362,53 @@ function render(){
 function renderSetup(){
 
   app.innerHTML=`
+
     <section class="welcome">
+
       <img src="icons/icon-192.png">
 
-      <h1>Cinema Projector Control</h1>
+      <h1>
+        Cinema Projector Control
+      </h1>
 
       <p>
-        L'app è pronta. Devi solo collegarla a Supabase.
+        L'app è pronta.
+        Devi solo collegarla a Supabase.
       </p>
 
       <div class="setup">
+
         Apri <b>README.md</b>:
-        inserisci URL e anon key in <b>app.js</b>,
+        inserisci URL e anon key in
+        <b>app.js</b>,
         esegui <b>supabase/schema.sql</b>,
         poi pubblica su GitHub Pages.
+
       </div>
+
     </section>
+
   `;
 }
 
 
 function renderDashboard(){
 
-  let s=status();
+  const s=status();
 
-  let last=rows[0];
+  const last=rows[0];
 
-  let open=rows.find(
+
+  const open=rows.find(
     x=>
       x.state==='ACCESO'||
       x.state==='LASCIATO_ACCESO'||
       x.state==='IN_CARICO'
   );
 
+
   let nextDate=null;
+
 
   if(last&&projector){
 
@@ -336,11 +422,13 @@ function renderDashboard(){
     );
   }
 
+
   const today=new Date();
 
   today.setHours(0,0,0,0);
 
-  let overdue=
+
+  const overdue=
     nextDate&&
     today>=new Date(
       nextDate.getFullYear(),
@@ -348,7 +436,8 @@ function renderDashboard(){
       nextDate.getDate()
     );
 
-  let title=
+
+  const title=
 
     open
       ?'QUALCUNO DEVE SPEGNERE'
@@ -362,7 +451,7 @@ function renderDashboard(){
           :'TUTTO OK';
 
 
-  let sub=
+  const sub=
 
     open
       ?`${name(open.user)} ha acceso il proiettore il ${fmt(open.powered_at)}.`
@@ -376,7 +465,7 @@ function renderDashboard(){
           :'Nessuna accensione registrata.';
 
 
-  let centralNumber=
+  const centralNumber=
 
     last&&nextDate
 
@@ -400,11 +489,15 @@ function renderDashboard(){
     <section class="status ${s}">
 
       <div class="statusIcon">
-        ${s==='ok'
-          ?'✓'
-          :s==='alert'
-            ?'⚠'
-            :'!'}
+
+        ${
+          s==='ok'
+            ?'✓'
+            :s==='alert'
+              ?'⚠'
+              :'!'
+        }
+
       </div>
 
       <div>
@@ -426,111 +519,121 @@ function renderDashboard(){
     </section>
 
 
-    ${open?`
+    ${
+      open
+        ?`
 
-      <section class="alert">
+          <section class="alert">
 
-        <div>
+            <div>
 
-          <b>
-            🔴 Proiettore acceso
-          </b>
+              <b>
+                🔴 Proiettore acceso
+              </b>
 
-          <p>
-            Registrato da
-            <b>${esc(name(open.user))}</b>
-            · ${fmt(open.powered_at)}
-          </p>
-
-
-          ${
-            open.state==='ACCESO'
-
-              ?`<small>
-                  Il proiettore è ancora acceso.
-                </small>`
-
-              :open.state==='LASCIATO_ACCESO'
-
-                ?`<small>
-                    ⚠️ Nessuno ha ancora preso in carico lo spegnimento.
-                  </small>`
-
-                :`<small>
-                    In carico a
-                    ${esc(name(open.claimed_user))}
-                  </small>`
-          }
-
-        </div>
+              <p>
+                Registrato da
+                <b>
+                  ${esc(name(open.user))}
+                </b>
+                · ${fmt(open.powered_at)}
+              </p>
 
 
-        <div>
+              ${
+                open.state==='ACCESO'
 
-          ${
-            open.state==='ACCESO' &&
-            open.user_id===user.id
+                  ?`
+                    <small>
+                      Il proiettore è ancora acceso.
+                    </small>
+                  `
 
-              ?`
-                <button
-                  class="primary"
-                  id="shutdown"
-                >
-                  ✓ HO SPENTO
-                </button>
+                  :open.state==='LASCIATO_ACCESO'
 
-                <button
-                  class="danger"
-                  id="leaveOn"
-                >
-                  ⚠ NON HO SPENTO, VADA QUALCUNO
-                </button>
-              `
+                    ?`
+                      <small>
+                        ⚠️ Nessuno ha ancora preso in carico lo spegnimento.
+                      </small>
+                    `
 
-              :''
-          }
+                    :`
+                      <small>
+                        In carico a
+                        ${esc(name(open.claimed_user))}
+                      </small>
+                    `
+              }
 
-
-          ${
-            open.state==='LASCIATO_ACCESO' &&
-            !open.claimed_by
-
-              ?`
-                <button
-                  class="secondary"
-                  id="claim"
-                >
-                  🙋 VADO IO
-                </button>
-              `
-
-              :''
-          }
+            </div>
 
 
-      
-           ${
-  open.state==='IN_CARICO' &&
-  open.claimed_by===user.id
-    ?`
-      <button
-        class="danger"
-        id="shutdown"
-      >
-        ✓ HO SPENTO
-      </button>
-    `
-    :''
-}
+            <div>
+
+              ${
+                open.state==='ACCESO' &&
+                open.user_id===user.id
+
+                  ?`
+                    <button
+                      class="primary"
+                      id="shutdown"
+                    >
+                      ✓ HO SPENTO
+                    </button>
+
+                    <button
+                      class="danger"
+                      id="leaveOn"
+                    >
+                      ⚠ NON HO SPENTO, VADA QUALCUNO
+                    </button>
+                  `
+
+                  :''
+              }
 
 
-          
+              ${
+                open.state==='LASCIATO_ACCESO' &&
+                !open.claimed_by
 
-        </div>
+                  ?`
+                    <button
+                      class="secondary"
+                      id="claim"
+                    >
+                      🙋 VADO IO
+                    </button>
+                  `
 
-      </section>
+                  :''
+              }
 
-    `:''}
+
+              ${
+                open.state==='IN_CARICO' &&
+                open.claimed_by===user.id
+
+                  ?`
+                    <button
+                      class="danger"
+                      id="shutdown"
+                    >
+                      ✓ HO SPENTO
+                    </button>
+                  `
+
+                  :''
+              }
+
+            </div>
+
+          </section>
+
+        `
+        :''
+    }
 
 
     <div class="grid">
@@ -645,7 +748,6 @@ function renderDashboard(){
 
       </section>
 
-
     </div>
 
 
@@ -657,9 +759,11 @@ function renderDashboard(){
         id="history"
       >
         📋 <b>Storico</b>
+
         <span>
           Ultime operazioni
         </span>
+
       </button>
 
 
@@ -672,15 +776,16 @@ function renderDashboard(){
               id="settings"
             >
               ⚙️ <b>Impostazioni</b>
+
               <span>
                 Intervallo e proiettore
               </span>
+
             </button>
           `
 
           :''
       }
-
 
     </div>
 
@@ -732,18 +837,29 @@ function renderDashboard(){
 
 function loginModal(){
 
-  let m=modal(
+  const m=modal(
     'Accedi',
     `
+
       <label>
         Email
-        <input id="e" type="email">
+
+        <input
+          id="e"
+          type="email"
+        >
       </label>
+
 
       <label>
         Password
-        <input id="p" type="password">
+
+        <input
+          id="p"
+          type="password"
+        >
       </label>
+
 
       <button
         class="primary full"
@@ -751,51 +867,80 @@ function loginModal(){
       >
         ACCEDI
       </button>
+
     `
   );
 
 
-  m.querySelector('#go').onclick=async()=>{
+  m.querySelector(
+    '#go'
+  ).onclick=async()=>{
 
-    let {error}=await sb.auth.signInWithPassword({
-      email:m.querySelector('#e').value,
-      password:m.querySelector('#p').value
+    const {
+      error
+    }=await sb.auth.signInWithPassword({
+
+      email:
+        m.querySelector('#e').value,
+
+      password:
+        m.querySelector('#p').value
+
     });
 
 
-    if(error)
+    if(error){
+
       toast(error.message);
 
-    else
+    }else{
+
       m.remove();
+
+    }
   };
 }
 
 
 function signupModal(){
 
-  let m=modal(
+  const m=modal(
     'Crea account',
     `
+
       <label>
         Nome
+
         <input id="n">
       </label>
 
+
       <label>
         Cognome
+
         <input id="c">
       </label>
 
+
       <label>
         Email
-        <input id="e" type="email">
+
+        <input
+          id="e"
+          type="email"
+        >
       </label>
+
 
       <label>
         Password
-        <input id="p" type="password">
+
+        <input
+          id="p"
+          type="password"
+        >
       </label>
+
 
       <button
         class="primary full"
@@ -803,24 +948,40 @@ function signupModal(){
       >
         CREA ACCOUNT
       </button>
+
     `
   );
 
 
-  m.querySelector('#go').onclick=async()=>{
+  m.querySelector(
+    '#go'
+  ).onclick=async()=>{
 
-    let {
+    const {
       data,
       error
     }=await sb.auth.signUp({
-      email:m.querySelector('#e').value,
-      password:m.querySelector('#p').value,
+
+      email:
+        m.querySelector('#e').value,
+
+      password:
+        m.querySelector('#p').value,
+
       options:{
+
         data:{
-          first_name:m.querySelector('#n').value,
-          last_name:m.querySelector('#c').value
+
+          first_name:
+            m.querySelector('#n').value,
+
+          last_name:
+            m.querySelector('#c').value
+
         }
+
       }
+
     });
 
 
@@ -847,6 +1008,7 @@ function signupModal(){
       );
 
       m.remove();
+
     }
   };
 }
@@ -854,9 +1016,10 @@ function signupModal(){
 
 function registerModal(){
 
-  let m=modal(
+  const m=modal(
     'Registra accensione',
     `
+
       <p class="note">
         Data e ora automatiche ·
         ${new Date().toLocaleString('it-IT')}
@@ -864,26 +1027,19 @@ function registerModal(){
 
 
       <label>
-        <input
-          type="checkbox"
-          checked
-          disabled
-        >
-        Proiettore acceso
-      </label>
 
-
-      <label>
         <input
           id="server"
           type="checkbox"
         >
+
         Server cinema acceso
+
       </label>
 
 
-
       <label>
+
         Note
 
         <textarea
@@ -900,29 +1056,52 @@ function registerModal(){
       >
         CONFERMA ACCENSIONE
       </button>
+
     `
   );
 
 
-  m.querySelector('#save').onclick=async()=>{
+  m.querySelector(
+    '#save'
+  ).onclick=async()=>{
 
-    let {
+    const {
       error
     }=await sb
       .from('maintenance_sessions')
       .insert({
-        projector_id:projector.id,
-        user_id:user.id,
-        projector_on:true,
-        server_on:m.querySelector('#server').checked,
-        notes:m.querySelector('#notes').value||null,
-        state:'ACCESO'
+
+        projector_id:
+          projector.id,
+
+        user_id:
+          user.id,
+
+        projector_on:
+          true,
+
+        server_on:
+          m.querySelector('#server').checked,
+
+        notes:
+          m.querySelector('#notes').value||null,
+
+        state:
+          'ACCESO'
+
       });
 
 
     if(error){
 
-      toast(error.message);
+      console.error(
+        'registration error',
+        error
+      );
+
+      toast(
+        error.message
+      );
 
     }else{
 
@@ -933,6 +1112,7 @@ function registerModal(){
       toast(
         '⚡ Accensione registrata'
       );
+
     }
   };
 }
@@ -940,28 +1120,40 @@ function registerModal(){
 
 async function leaveOn(){
 
-  let r=rows.find(
+  const r=rows.find(
     x=>x.state==='ACCESO'
   );
+
 
   if(!r)
     return;
 
 
-  let {
+  const {
     error
   }=await sb
     .from('maintenance_sessions')
     .update({
-      state:'LASCIATO_ACCESO'
+
+      state:
+        'LASCIATO_ACCESO'
+
     })
-    .eq('id',r.id)
-    .eq('state','ACCESO');
+    .eq(
+      'id',
+      r.id
+    )
+    .eq(
+      'state',
+      'ACCESO'
+    );
 
 
   if(error){
 
-    toast(error.message);
+    toast(
+      error.message
+    );
 
   }else{
 
@@ -970,37 +1162,53 @@ async function leaveOn(){
     toast(
       '⚠️ Avviso condiviso: qualcuno deve spegnere'
     );
+
   }
 }
 
 
 async function claim(){
 
-  let id=
-    rows.find(
-      x=>x.state==='LASCIATO_ACCESO'
-    )?.id;
+  const r=rows.find(
+    x=>x.state==='LASCIATO_ACCESO'
+  );
 
-  if(!id)
+
+  if(!r)
     return;
 
 
-  let {
+  const {
     error
   }=await sb
     .from('maintenance_sessions')
     .update({
-      claimed_by:user.id,
-      claimed_at:new Date().toISOString(),
-      state:'IN_CARICO'
+
+      claimed_by:
+        user.id,
+
+      claimed_at:
+        new Date().toISOString(),
+
+      state:
+        'IN_CARICO'
+
     })
-    .eq('id',id)
-    .eq('state','LASCIATO_ACCESO');
+    .eq(
+      'id',
+      r.id
+    )
+    .eq(
+      'state',
+      'LASCIATO_ACCESO'
+    );
 
 
   if(error){
 
-    toast(error.message);
+    toast(
+      error.message
+    );
 
   }else{
 
@@ -1009,38 +1217,52 @@ async function claim(){
     toast(
       'Hai preso in carico lo spegnimento'
     );
+
   }
 }
 
 
 async function shutdown(){
 
-  let r=rows.find(
+  const r=rows.find(
     x=>
       x.state==='ACCESO'||
       x.state==='IN_CARICO'||
       x.state==='LASCIATO_ACCESO'
   );
 
+
   if(!r)
     return;
 
 
-  let {
+  const {
     error
   }=await sb
     .from('maintenance_sessions')
     .update({
-      shutdown_at:new Date().toISOString(),
-      shutdown_user_id:user.id,
-      state:'SPENTO'
+
+      shutdown_at:
+        new Date().toISOString(),
+
+      shutdown_user_id:
+        user.id,
+
+      state:
+        'SPENTO'
+
     })
-    .eq('id',r.id);
+    .eq(
+      'id',
+      r.id
+    );
 
 
   if(error){
 
-    toast(error.message);
+    toast(
+      error.message
+    );
 
   }else{
 
@@ -1049,6 +1271,7 @@ async function shutdown(){
     toast(
       '✓ Spegnimento registrato'
     );
+
   }
 }
 
@@ -1058,6 +1281,7 @@ function historyModal(){
   modal(
     'Storico',
     `
+
       <div class="history">
 
         ${
@@ -1071,9 +1295,11 @@ function historyModal(){
                   ${fmt(r.powered_at)}
                 </b>
 
+
                 <span>
                   ${esc(name(r.user))}
                 </span>
+
 
                 <small>
 
@@ -1092,16 +1318,17 @@ function historyModal(){
 
                           :r.state==='IN_CARICO'
 
-                            ?'In carico'
+                            ?'🙋 In carico'
 
                             :'⚠ Lasciato acceso'
                   }
 
+
                   · Proiettore ✓
+
 
                   · Server
                   ${r.server_on?'✓':'—'}
-
 
                 </small>
 
@@ -1110,9 +1337,11 @@ function historyModal(){
             `).join('')
 
             :'Nessuna operazione.'
+
         }
 
       </div>
+
     `
   );
 }
@@ -1120,20 +1349,24 @@ function historyModal(){
 
 function settingsModal(){
 
-  let m=modal(
+  const m=modal(
     'Impostazioni',
     `
+
       <label>
+
         Nome proiettore
 
         <input
           id="n"
           value="${esc(projector.name)}"
         >
+
       </label>
 
 
       <label>
+
         Intervallo (giorni)
 
         <input
@@ -1143,6 +1376,7 @@ function settingsModal(){
           max="365"
           value="${projector.interval_days}"
         >
+
       </label>
 
 
@@ -1152,26 +1386,39 @@ function settingsModal(){
       >
         SALVA
       </button>
+
     `
   );
 
 
-  m.querySelector('#save').onclick=async()=>{
+  m.querySelector(
+    '#save'
+  ).onclick=async()=>{
 
-    let {
+    const {
       error
     }=await sb
       .from('projectors')
       .update({
-        name:m.querySelector('#n').value,
-        interval_days:+m.querySelector('#d').value
+
+        name:
+          m.querySelector('#n').value,
+
+        interval_days:
+          +m.querySelector('#d').value
+
       })
-      .eq('id',projector.id);
+      .eq(
+        'id',
+        projector.id
+      );
 
 
     if(error){
 
-      toast(error.message);
+      toast(
+        error.message
+      );
 
     }else{
 
@@ -1182,16 +1429,19 @@ function settingsModal(){
       toast(
         'Impostazioni salvate'
       );
+
     }
   };
 }
 
 
-if('serviceWorker' in navigator)
+if('serviceWorker' in navigator){
 
   navigator.serviceWorker
     .register('./sw.js')
     .catch(()=>{});
+
+}
 
 
 let realtimeChannel=null;
@@ -1208,6 +1458,7 @@ function subscribeRealtime(){
     sb.removeChannel(
       realtimeChannel
     );
+
   }
 
 
@@ -1227,6 +1478,7 @@ function subscribeRealtime(){
       }
     )
     .subscribe();
+
 }
 
 
@@ -1236,26 +1488,34 @@ if(sb){
     .getSession()
     .then(({data})=>{
 
-      user=data.session?.user||null;
+      user=
+        data.session?.user||
+        null;
 
       load();
 
       subscribeRealtime();
+
     });
 
 
   sb.auth.onAuthStateChange(
     (_e,s)=>{
 
-      user=s?.user||null;
+      user=
+        s?.user||
+        null;
 
       load();
 
       subscribeRealtime();
+
     }
   );
 
 }else{
 
   render();
+
 }
+```
