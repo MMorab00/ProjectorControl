@@ -1,4 +1,4 @@
-const CACHE = 'cinema-keep-alive-v7';
+const CACHE = 'cinema-keep-alive-v8';
 
 const STATIC_ASSETS = [
   './',
