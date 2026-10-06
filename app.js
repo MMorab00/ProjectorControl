@@ -39,5 +39,41 @@ function historyModal(){modal('Storico',`<div class="history">${rows.length?rows
 function installModal(){modal('Installa l’app',`<p><b>Android:</b> Chrome → ⋮ → Installa app / Aggiungi alla schermata Home.</p><p><b>iPhone:</b> Safari → Condividi → Aggiungi alla schermata Home.</p><p class="note">Tutti continueranno a usare lo stesso database condiviso.</p>`)}
 function settingsModal(){let m=modal('Impostazioni',`<label>Nome proiettore<input id="n" value="${esc(projector.name)}"></label><label>Intervallo (giorni)<input id="d" type="number" min="1" max="365" value="${projector.interval_days}"></label><button class="primary full" id="save">SALVA</button>`);m.querySelector('#save').onclick=async()=>{let {error}=await sb.from('projectors').update({name:m.querySelector('#n').value,interval_days:+m.querySelector('#d').value}).eq('id',projector.id);if(error)toast(error.message);else{m.remove();await load();toast('Impostazioni salvate')}}}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
-if(sb){sb.auth.getSession().then(({data})=>{user=data.session?.user||null;load()});sb.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;load()});}
+let realtimeChannel = null;
+
+function subscribeRealtime(){
+  if(!sb) return;
+
+  if(realtimeChannel){
+    sb.removeChannel(realtimeChannel);
+  }
+
+  realtimeChannel = sb
+    .channel('maintenance-sessions-live')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'maintenance_sessions'
+      },
+      () => {
+        load();
+      }
+    )
+    .subscribe();
+}
+if(sb){
+  sb.auth.getSession().then(({data})=>{
+    user=data.session?.user||null;
+    load();
+    subscribeRealtime();
+  });
+
+  sb.auth.onAuthStateChange((_e,s)=>{
+    user=s?.user||null;
+    load();
+    subscribeRealtime();
+  });
+}
 else render();
