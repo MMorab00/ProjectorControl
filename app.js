@@ -75,22 +75,29 @@ function renderDashboard(){
         : 'TUTTO OK';
 
   let sub=open
-  ? `${name(open.user)} ha lasciato acceso il proiettore il ${fmt(open.powered_at)}.`
-  : overdue
-    ? 'Accendere il proiettore prima possibile.'
-    : last
-      ? 'Il proiettore è in regola.'
-      : 'Nessuna accensione registrata.';
+    ? `${name(open.user)} ha lasciato acceso il proiettore il ${fmt(open.powered_at)}.`
+    : overdue
+      ? 'Accendere il proiettore prima possibile.'
+      : last
+        ? 'Il proiettore è in regola.'
+        : 'Nessuna accensione registrata.';
 
   let centralNumber=last&&nextDate
     ? overdue
       ? 'ORA'
-      : nextDate.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'})
+      : nextDate.toLocaleDateString('it-IT',{
+          day:'2-digit',
+          month:'2-digit',
+          year:'numeric'
+        })
     : '—';
 
   app.innerHTML=`
     <section class="status ${s}">
-      <div class="statusIcon">${s==='ok'?'✓':s==='alert'?'⚠':'!'}</div>
+      <div class="statusIcon">
+        ${s==='ok'?'✓':s==='alert'?'⚠':'!'}
+      </div>
+
       <div>
         <small>STATO PROIETTORE</small>
         <h1>${title}</h1>
@@ -102,44 +109,54 @@ function renderDashboard(){
     <section class="alert">
       <div>
         <b>🔴 Proiettore acceso</b>
-        <p>Registrato da <b>${esc(name(open.user))}</b> · ${fmt(open.powered_at)}</p>
-        ${open.claimed_by?`<small>In carico a ${esc(name(open.claimed_user))}</small>`:''}
+        <p>
+          Registrato da <b>${esc(name(open.user))}</b> · ${fmt(open.powered_at)}
+        </p>
+        ${open.claimed_by
+          ? `<small>In carico a ${esc(name(open.claimed_user))}</small>`
+          : ''}
       </div>
+
       <div>
-        ${!open.claimed_by?'<button class="secondary" id="claim">🙋 VADO IO</button>':''}
-        ${(open.claimed_by===user.id||profile?.role==='admin')?'<button class="danger" id="shutdown">✓ PROIETTORE SPENTO</button>':''}
+        ${!open.claimed_by
+          ? '<button class="secondary" id="claim">🙋 VADO IO</button>'
+          : ''}
+
+        ${(open.claimed_by===user.id||profile?.role==='admin')
+          ? '<button class="danger" id="shutdown">✓ PROIETTORE SPENTO</button>'
+          : ''}
       </div>
-    </section>`:''}
+    </section>`
+    : ''}
 
     <div class="grid">
+
       <section class="card center">
-  <small>${esc(projector?.name||'Proiettore Cinema')}</small>
 
-  <div class="muted" style="font-size:1rem;font-weight:700;margin-top:12px;">
-    PROSSIMA ACCENSIONE
-  </div>
+        <small>${esc(projector?.name||'Proiettore Cinema')}</small>
 
-  <div class="number">${centralNumber}</div>
+        <div class="muted" style="font-size:1rem;font-weight:700;margin-top:12px;">
+          PROSSIMA ACCENSIONE
+        </div>
 
-  <div class="muted">
-    ${last
-      ? overdue
-        ? '⚠ ACCENDERE PRIMA POSSIBILE'
-        : 'Data prevista'
-      : 'nessuna accensione registrata'}
-  </div>
+        <div class="number">${centralNumber}</div>
 
-  <button class="primary full" id="register">
-    ⚡ REGISTRA ACCENSIONE
-  </button>
-</section>
+        <div class="muted">
+          ${last
+            ? overdue
+              ? '⚠ ACCENDERE PRIMA POSSIBILE'
+              : 'Data prevista'
+            : 'Nessuna accensione registrata'}
+        </div>
 
         <button class="primary full" id="register">
           ⚡ REGISTRA ACCENSIONE
         </button>
+
       </section>
 
       <section class="card stats">
+
         <div>
           <small>Ultima accensione</small>
           <b>${fmt(last?.powered_at)}</b>
@@ -159,21 +176,30 @@ function renderDashboard(){
           <small>Operazioni</small>
           <b>${rows.length}</b>
         </div>
+
       </section>
+
     </div>
 
     <div class="actions">
+
       <button class="quick" id="history">
-        📋 <b>Storico</b><span>Ultime operazioni</span>
+        📋 <b>Storico</b>
+        <span>Ultime operazioni</span>
       </button>
 
       ${profile?.role==='admin'
-        ?'<button class="quick" id="settings">⚙️ <b>Impostazioni</b><span>Intervallo e proiettore</span></button>'
-        :''}
+        ? `<button class="quick" id="settings">
+            ⚙️ <b>Impostazioni</b>
+            <span>Intervallo e proiettore</span>
+          </button>`
+        : ''}
 
       <button class="quick" id="install">
-        📱 <b>Installa</b><span>Aggiungi alla Home</span>
+        📱 <b>Installa</b>
+        <span>Aggiungi alla Home</span>
       </button>
+
     </div>
   `;
 
