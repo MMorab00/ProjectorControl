@@ -10,7 +10,19 @@ let user=null,profile=null,projector=null,rows=[];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 const fmt=s=>s?new Date(s).toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'}):'—';
 const name=p=>p?(p.first_name||'Utente')+(p.last_name?' '+p.last_name:''):'—';
-function daysLeft(){if(!rows[0]||!projector)return null;return Math.ceil((new Date(rows[0].powered_at).getTime()+projector.interval_days*86400000-Date.now())/86400000)}
+function daysLeft(){
+  if(!rows[0] || !projector) return null;
+
+  const target = new Date(rows[0].powered_at);
+  target.setDate(target.getDate() + projector.interval_days);
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  target.setHours(0,0,0,0);
+
+  return Math.round((target - today) / 86400000);
+}
 function status(){if(rows[0]&&(rows[0].state==='LASCIATO_ACCESO'||rows[0].state==='IN_CARICO'))return 'alert';let d=daysLeft();return d===null?'overdue':d<0?'overdue':d<=1?'warning':'ok'}
 function toast(t){let x=document.createElement('div');x.className='toast';x.textContent=t;document.body.append(x);setTimeout(()=>x.remove(),3500)}
 function modal(title,body){let o=document.createElement('div');o.className='overlay';o.innerHTML=`<div class="modal"><div class="mhead"><h2>${title}</h2><button class="x">×</button></div>${body}</div>`;o.querySelector('.x').onclick=()=>o.remove();document.body.append(o);return o}
